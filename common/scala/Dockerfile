@@ -1,7 +1,7 @@
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements; and to You under the Apache License, Version 2.0.
 
-FROM resin/raspberry-pi-alpine-openjdk
+FROM arm32v7/openjdk:8u181-jdk
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en

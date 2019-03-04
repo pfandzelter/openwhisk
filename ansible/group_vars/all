@@ -271,8 +271,8 @@ linux:
   version: 4.4.0-31
 
 couchdb:
-  docker_image: matthiasg/rpi-couchdb
-  version: latest
+  docker_image: treehouses/couchdb
+  version: 2.1.0
   pull_couchdb: true
 
 docker:

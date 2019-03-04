@@ -1,12 +1,14 @@
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements; and to You under the Apache License, Version 2.0.
 
-FROM scala
+FROM arm32v7/openjdk:8u181-jdk
 
 ENV UID=1001 \
     NOT_ROOT_USER=owuser
 ENV SWAGGER_UI_DOWNLOAD_SHA256=3d7ef5ddc59e10f132fe99771498f0f1ba7a2cbfb9585f9863d4191a574c96e7 \
     SWAGGER_UI_VERSION=3.6.0
+
+ENV JRE_HOME ${JAVA_HOME}/jre
 
 ###################################################################################################
 # It's needed for lean mode where the controller is also an invoker
@@ -42,12 +44,22 @@ RUN curl -sSL -o swagger-ui-v${SWAGGER_UI_VERSION}.tar.gz --no-verbose https://g
 ADD build/distributions/controller.tar /
 
 COPY init.sh /
+
+COPY transformEnvironment.sh /
+RUN chmod +x transformEnvironment.sh
+
+COPY copyJMXFiles.sh /
+RUN chmod +x copyJMXFiles.sh
+
+
 RUN chmod +x init.sh
 
-RUN adduser -D -u ${UID} -h /home/${NOT_ROOT_USER} -s /bin/bash ${NOT_ROOT_USER}
+RUN adduser --uid ${UID} --disabled-password --gecos "" --home /home/${NOT_ROOT_USER} --shell /bin/bash ${NOT_ROOT_USER}
 
 # It is possible to run as non root if you dont need invoker capabilities out of the controller today
 #USER ${NOT_ROOT_USER}
+
+RUN mkdir /logs
 
 EXPOSE 8080
 CMD ["./init.sh", "0"]

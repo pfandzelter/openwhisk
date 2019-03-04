@@ -283,7 +283,7 @@
 - name: include plugins
   include_tasks: "{{ item }}.yml"
   with_items: "{{ controller_plugins | default([]) }}"
-  when: not lean
+#  when: not lean
 
 - name: lean controller setup
   include_tasks: "lean.yml"
