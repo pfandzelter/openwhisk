@@ -11,11 +11,27 @@
                 "deprecated": true
             },
             {
+
                 "kind": "nodejs:6",
                 "default": true,
                 "image": {
                     "prefix": "whisk",
                     "name": "nodejs6action",
+                    "tag": "latest"
+                },
+                "deprecated": false,
+                "stemCells": [{
+                    "count": 2,
+                    "memory": "256 MB"
+                }]
+            },
+            {
+
+                "kind": "nodejs:8",
+                "default": false,
+                "image": {
+                    "prefix": "whisk",
+                    "name": "nodejs8action",
                     "tag": "latest"
                 },
                 "deprecated": false,
