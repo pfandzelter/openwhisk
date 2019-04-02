@@ -15,9 +15,9 @@
                 "kind": "nodejs:6",
                 "default": true,
                 "image": {
-                    "prefix": "whisk",
+                    "prefix": "kpavel",
                     "name": "nodejs6action",
-                    "tag": "latest"
+                    "tag": "rpi"
                 },
                 "deprecated": false,
                 "stemCells": [{
@@ -30,9 +30,9 @@
                 "kind": "nodejs:8",
                 "default": false,
                 "image": {
-                    "prefix": "whisk",
+                    "prefix": "kpavel",
                     "name": "nodejs8action",
-                    "tag": "latest"
+                    "tag": "rpi"
                 },
                 "deprecated": false,
                 "stemCells": [{
