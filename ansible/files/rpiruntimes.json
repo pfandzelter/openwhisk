@@ -24,21 +24,6 @@
                     "count": 2,
                     "memory": "256 MB"
                 }]
-            },
-            {
-
-                "kind": "nodejs:8",
-                "default": false,
-                "image": {
-                    "prefix": "kpavel",
-                    "name": "nodejs8action",
-                    "tag": "rpi"
-                },
-                "deprecated": false,
-                "stemCells": [{
-                    "count": 2,
-                    "memory": "256 MB"
-                }]
             }
         ]
     },
