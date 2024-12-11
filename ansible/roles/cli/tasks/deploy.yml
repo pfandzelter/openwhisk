@@ -21,7 +21,6 @@
   get_url:
     url: "{{ openwhisk_cli.remote.location }}/{{ openwhisk_cli.archive_name}}-{{ openwhisk_cli_tag }}-all.tgz"
     dest: "{{ nginx.confdir }}/cli_temp/{{ openwhisk_cli.archive_name }}.tgz"
-    headers: "{{ openwhisk_cli.remote.headers | default('') }}"
   when: openwhisk_cli.installation_mode == "remote"
 
 - name: "... or Copy release archive to build directory"
@@ -70,6 +69,10 @@
 
 # Use old good unzip instead of unarchive due to a known issue on MacOS
 # https://github.com/ansible/ansible-modules-core/issues/3952
+
 - name: "Unarchive the individual zipfiles into binaries"
-  shell: unzip -o {{ item.path }} -d {{ item.path | dirname }}
+  unarchive:
+    src: "{{ item.path }}"
+    dest: "{{ item.path | dirname }}"
+    remote_src: yes
   with_items: "{{ individual_zipfiles.files }}"

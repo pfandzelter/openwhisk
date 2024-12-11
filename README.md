@@ -17,7 +17,87 @@
 #
 -->
 
-# OpenWhisk
+# Lean OpenWhisk on arm64 in 2024
+
+This repository is a fork of [razkey23/Serverless-On-Edge](https://github.com/razkey23/Serverless-On-Edge), which itself is a fork of [kpavel/incubator-openwhisk](https://github.com/kpavel/incubator-openwhisk), which is a fork of [apache/openwhisk](https://github.com/apache/openwhisk).
+We run Lean OpenWhisk on a Raspberry Pi 3/4 with Raspberry Pi OS (Debian Bookworm) in 2024.
+
+Here are the steps:
+
+```sh
+sudo apt update
+
+sudo apt install python3 python3-pip netcat-openbsd nodejs npm
+
+sudo pip install ansible==4.1.0 --break-system-packages
+sudo pip install jinja2==3.0.1 --break-system-packages
+sudo pip install requests==2.31.0 --break-system-packages
+sudo pip install docker==4.0.2 --break-system-packages
+sudo pip install httplib2==0.9.2 --break-system-packages
+
+cd ~
+git clone https://github.com/pfandzelter/openwhisk
+
+cd openwhisk/ansible
+
+cat << EOF > db_local.ini
+[db_creds]
+db_provider=CouchDB
+db_username=whisk_admin
+db_password=some_passw0rd
+db_protocol=http
+db_host=172.17.0.1
+db_port=5984
+EOF
+
+sudo docker pull kpavel/nodejs6action:rpi
+sudo docker pull kpavel/controller:rpi
+
+ansible-playbook setup.yml
+ansible-playbook couchdb.yml
+ansible-playbook initdb.yml
+ansible-playbook wipe.yml
+ansible-playbook openwhisk.yml -v \
+    -e lean=true \
+    -e invoker_user_memory=1024m \
+    -e docker_image_prefix=kpavel \
+    -e docker_image_tag=rpi \
+    -e controller_protocol=http
+ansible-playbook postdeploy.yml -e skip_catalog_install=true
+```
+
+We now have Lean OpenWhisk running and can deploy our functions.
+First, we need to install the `wsk` CLI:
+
+```sh
+sudo wget -qO- https://github.com/apache/incubator-openwhisk-cli/releases/download/0.10.0-incubating/OpenWhisk_CLI-0.10.0-incubating-linux-arm64.tgz | tar xvz -C ~/openwhisk/bin wsk
+export PATH=$PATH:~/openwhisk/bin
+
+cat << EOF > ~/.wskprops
+AUTH=23bc46b1-71f6-4ed5-8c54-816aa4f8c502:123zO3xZCLrMN6v2BKK1dXYFpXlPkccOFqm12CdAsMgRU4VrNZ9lyGVCGuMDGIwP
+APIHOST=http://172.17.0.1:10001
+NAMESPACE=guest
+EOF
+```
+
+Create a file `hello.js`, add it as an action, and invoke it:
+
+```sh
+cat << EOF > ~/hello.js
+/**
+ * Hello world as an OpenWhisk action.
+ */
+function main(params) {
+    var name = params.name || 'World';
+    return {payload:  'Hello, ' + name + '!'};
+}
+EOF
+
+wsk action create hello hello.js
+wsk action invoke hello --result
+```
+
+---
 
 [![Build Status](https://travis-ci.org/apache/incubator-openwhisk.svg?branch=master)](https://travis-ci.org/apache/incubator-openwhisk)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
@@ -26,7 +106,6 @@
 [![Twitter](https://img.shields.io/twitter/follow/openwhisk.svg?style=social&logo=twitter)](https://twitter.com/intent/follow?screen_name=openwhisk)
 
 OpenWhisk is a cloud-first distributed event-based programming service. It provides a programming model to upload event handlers to a cloud service, and register the handlers to respond to various events. Learn more at [http://openwhisk.incubator.apache.org](http://openwhisk.incubator.apache.org).
-
 
 * [Quick Start](#quick-start) (Docker-Compose)
 * [Native development](#native-development) (Mac and Ubuntu)
@@ -37,6 +116,7 @@ OpenWhisk is a cloud-first distributed event-based programming service. It provi
 * [Slack](#slack)
 
 ### Quick Start
+
 The easiest way to start using OpenWhisk is to get Docker installed on on Mac, Windows or Linux. The [Docker website](https://docs.docker.com/install/) has details instructions on getting the tools installed. This does not give you a production deployment but gives you enough of the pieces to start writing functions and seeing them run.
 
 ```
@@ -58,12 +138,14 @@ git clone https://github.com/apache/incubator-openwhisk-deploy-kube.git
 Then follow the instructions in the [OpenWhisk on Kubernetes README.md](https://github.com/apache/incubator-openwhisk-deploy-kube/blob/master/README.md).
 
 ### Vagrant Setup
+
 A [Vagrant](http://vagrantup.com) machine is also available to run OpenWhisk on Mac, Windows PC or GNU/Linux but isn't used by as much of the dev team so sometimes lags behind.
 Download and install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and [Vagrant](https://www.vagrantup.com/downloads.html) for your operating system and architecture.
 
 **Note:** For Windows, you may need to install an ssh client in order to use the command `vagrant ssh`. Cygwin works well for this, and Git Bash comes with an ssh client you can point to. If you run the command and no ssh is installed, Vagrant will give you some options to try.
 
 Follow these step to run your first OpenWhisk Action:
+
 ```
 # Clone openwhisk
 git clone --depth=1 https://github.com/apache/incubator-openwhisk.git openwhisk
@@ -76,6 +158,7 @@ cd openwhisk/tools/vagrant
 ```
 
 Wait for hello action output:
+
 ```
 wsk action invoke /whisk.system/utils/echo -p message hello --result
 {
@@ -101,15 +184,15 @@ If you plan to make contributions to OpenWhisk, we recommend either a Mac or Ubu
 Browse the [documentation](docs/) to learn more. Here are some topics you may be
 interested in:
 
-- [System overview](docs/about.md)
-- [Getting Started](docs/README.md)
-- [Create and invoke actions](docs/actions.md)
-- [Create triggers and rules](docs/triggers_rules.md)
-- [Use and create packages](docs/packages.md)
-- [Browse and use the catalog](docs/catalog.md)
-- [Using the OpenWhisk mobile SDK](docs/mobile_sdk.md)
-- [OpenWhisk system details](docs/reference.md)
-- [Implementing feeds](docs/feeds.md)
+* [System overview](docs/about.md)
+* [Getting Started](docs/README.md)
+* [Create and invoke actions](docs/actions.md)
+* [Create triggers and rules](docs/triggers_rules.md)
+* [Use and create packages](docs/packages.md)
+* [Browse and use the catalog](docs/catalog.md)
+* [Using the OpenWhisk mobile SDK](docs/mobile_sdk.md)
+* [OpenWhisk system details](docs/reference.md)
+* [Implementing feeds](docs/feeds.md)
 
 ### Repository Structure
 
