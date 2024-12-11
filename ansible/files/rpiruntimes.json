@@ -11,7 +11,6 @@
                 "deprecated": true
             },
             {
-
                 "kind": "nodejs:6",
                 "default": true,
                 "image": {
@@ -20,13 +19,14 @@
                     "tag": "rpi"
                 },
                 "deprecated": false,
-                "stemCells": [{
-                    "count": 2,
-                    "memory": "256 MB"
-                }]
+                "stemCells": [
+                    {
+                        "count": 2,
+                        "memory": "256 MB"
+                    }
+                ]
             }
         ]
     },
-    "blackboxes": [
-    ]
+    "blackboxes": []
 }

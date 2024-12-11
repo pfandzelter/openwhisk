@@ -22,6 +22,8 @@
 This repository is a fork of [razkey23/Serverless-On-Edge](https://github.com/razkey23/Serverless-On-Edge), which itself is a fork of [kpavel/incubator-openwhisk](https://github.com/kpavel/incubator-openwhisk), which is a fork of [apache/openwhisk](https://github.com/apache/openwhisk).
 We run Lean OpenWhisk on a Raspberry Pi 3/4 with Raspberry Pi OS (Debian Bookworm) in 2024.
 
+## Deployment
+
 Here are the steps:
 
 ```sh
@@ -96,6 +98,49 @@ EOF
 wsk action create hello hello.js
 wsk action invoke hello --result
 ```
+
+## Runtimes
+
+The existing Lean OpenWhisk repositories use a Node.js runtime that was build in 2019 for `arm32`.
+We wanted to have a Python3 runtime, so we had to build our own.
+As we did not want to create a bunch more forks, we copied the [`apache/openwhisk-runtime-python`](https://github.com/apache/openwhisk-runtime-python) and [`apache/openwhisk-runtime-dockerskeleton`](https://github.com/apache/openwhisk-runtime-dockerskeleton) repositories to the `runtime` directory.
+We used the `1.14.0` version from early 2020, just in case there were any breaking changes in the last four years.
+If you want to build your own runtimes, roughly follow these steps for Python3.
+These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you could perform these steps on a Raspberry Pi if you have the patience.
+
+1. Sign in to your Docker repository.
+    You can use the default Docker hub or any other registry, just note the correct prefix.
+
+1. Build a development container.
+    We use a development container to get an environment with roughly the dependencies that we would have in 2019, most importantly Docker
+
+    ```sh
+    cd runtimes
+    docker build --platform linux/arm64 -f devel.Dockerfile -t wsk-runtime-devel .
+    ```
+
+1. Start the development container with access to `/var/run/docker.sock` and your files.
+
+    ```sh
+    cd ..
+    docker run --rm -it -v $(pwd):/wsk -v /var/run/docker.sock:/var/run/docker.sock wsk-runtime-devel
+    ```
+
+    You are now in the container's shell and can start building the containers.
+
+1. Export the correct prefix and tag for your images:
+
+    ```sh
+    export WSK_IMAGE_PREFIX=pfandzelter
+    export WSK_IMAGE_TAG=arm64
+    ```
+
+1. Build the `dockerskeleton` image:
+
+    ```sh
+    cd /wsk/runtimes/dockerskeleton
+
+    ```
 
 ---
 
