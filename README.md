@@ -59,6 +59,7 @@ EOF
 
 sudo docker pull kpavel/nodejs6action:rpi
 sudo docker pull pfandzelter/controller:arm64
+# sudo docker pull pfandzelter/apigateway:arm64
 
 ansible-playbook setup.yml
 ansible-playbook couchdb.yml
@@ -71,6 +72,8 @@ ansible-playbook openwhisk.yml -v \
     -e docker_image_tag=arm64 \
     -e controller_protocol=http
 ansible-playbook postdeploy.yml -e skip_catalog_install=true
+# ansible-playbook apigateway.yml \
+#     -e apigateway_docker_image=pfandzelter/apigateway:arm64
 ```
 
 We now have Lean OpenWhisk running and can deploy our functions.
@@ -264,6 +267,23 @@ Simply use the `wask-runtime-devel` image built above:
         -e docker_image_tag=arm64 \
         -e controller_protocol=http
     ```
+
+## API Gateway
+
+We don't know what the API gateway is needed for, but we'll compile it anyway.
+The contents of [apache/openwhisk-apigateway@1.0.0](https://github.com/apache/openwhisk-apigateway) are in the `apigateway` directory.
+
+```sh
+cd apigateway
+
+export WSK_IMAGE_PREFIX=pfandzelter
+export WSK_IMAGE_TAG=arm64
+export WSK_IMAGE_REGISTRY=docker.io
+
+OPENWHISK_TARGET_REGISTRY=$WSK_IMAGE_REGISTRY OPENWHISK_TARGET_PREFIX=$WSK_IMAGE_PREFIX OPENWHISK_TARGET_TAG=$WSK_IMAGE_TAG make docker
+
+docker push $WSK_IMAGE_REGISTRY/$WSK_IMAGE_PREFIX/apigateway:$WSK_IMAGE_TAG
+```
 
 ---
 

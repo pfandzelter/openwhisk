@@ -1,0 +1,58 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# A Travis CI configuration file.
+
+sudo: required
+dist: xenial
+jdk: openjdk8
+language: java
+services:
+  - docker
+
+notifications:
+  email: false
+  webhooks:
+    urls:
+      # travis2slack webhook to enable DMs on openwhisk-team.slack.com to PR authors with TravisCI results
+      secure: "AEc7oc14mGjxLcnvco61XgUn5icDutoj+5fjQ4SiOqvZIhtwcdlM6T3ELeeorkRUyCwghMWkH89Z5RSqF5uvNBjmn3E+z+x3q3hM2ZF9KaiMuaxHJHydTjQzHOZuYyYeMWSoK/qczoYAVY2c3+3GtAzqZ55V5L2oQa6fpBm384lqJukQpK426kk9wMO6xNaByQxiLDOz9ddDwDeroR7RwclYs1XG68O9a/J2/gBKhjVy10GHAhet5HMO9CCwOsi/VVJMw+Q6zhlErLgmVnA722JlLiqqMJZQ1z5z7MUyt9ZhZc3qhKBNfU0cobEdguEGjo5AwsJTaQq/RdgIRk3kTNxT7t34cLwyCL+e/H2h83Tm1Cv4X4F4Qsk88VSivaKWU4LEv0tJ4cx5wM2nbprZn5MBhVZUD3T4NnbbLgR593gQqB1m4QWbZD4WDPYMFYZn+zOVVYH15DxLJlBNUsoQExknmeAZfGq4Del93bYn7H/c+pQR3XG5ntOTp0xsUxSjxVfEBdMOdR9ev/HO7rN3xIE6bgUdwYZKKcpQLlKkp5EBoBDjl6oLJbEg0oFmn/0l7Da2FxKdD7oxOzEQCvymc74gOVH78Fl9HBFCh0xRJGl6R1ZN1c5mpSRIKuzFTS5oyhbuZdkDxdgyE5XNBvziNdD3Li0xXQkLzXhdxL71KnM="
+
+env:
+  global:
+    - secure: "c8XNwdOryMVJUGLzWv+AzUQaS0Yt7uUmGqw+5/K7o7zmpux7Q5H7OU3jni2kOr+ZoIldsmTnnG7m1N9D8qUjD64KaAfEC0ybo04kDraezVMghUEV8LWMpSRRlAFpzQeVC8IcSiUEXM0H8E6Y09jGMnLKqyFUWAlDB60n0x2rfK/IPU+x4/h+6Y5XpYqaNtujoUf/2XVkrOeRcEhVZQJAwsRtA8HjRUy7PRB/9kepTSln9QzRZYd6v4F1qUKgZhlWNRUXWRbhrNK/z6T7jSlHjY44yvse4fBbie+EsuImtOHnDuTA4XXQlbc0gGVvD3sYYf2CBMxeeE+UTbRPLxgml+uUIviWKt/PKB5qUwQyLKP/Rzr1qv5RryrX0xWoqCrVsaCe0fkh0vUks0AYlzhm1CNK/g1If+qZ6R0GMjawVUbCunhDi1vJlP5PmniIoLpVwLa6XoMYJKtfngGm2763y00ktVGGL1gDtnm0lDuhkinIxOzieh8aRpYDBX6zZZ/n20LzDO/5l0CGErKPgzzt9vRPiQNoGxqC90jtsin+XkOxF9erk0QYt/St7/Qa1R0E+0dA2bHqxz2SWz3cjcc4Cw8/DW3SLFjaONvs6aQyHkrL2LJabARMMgGmf68P5nJrPy56c3gV8jXe7CVaV+5nClT1HYgWSEIna6oyzo8kzFk="
+    - secure: "dM0paMW2d4U4U7OwbnrTjdOqDnvo+nce9r7h+qTbYfbuJe0fpRkHCrxcB//8ESkMrPTr0EDExCxvaywY8pqeVVJbykNswdyze1SWYk6lbUvXTpSrKqp0J0a/FtVjfamc1aMv4c6KIDKh4vIcgK4xrjXj68COCS6uIcFhETNUy5bxH8T2BOJzyf/iWOF7oduXUV/VGNcWnhkPdoPh8xtpmBJ6ZTWQ01MriZ/28hvzgyh1OjJFWCJZ+OZoIDQVPb/jnfPXU4Wk/G/LEPJcBgvN4qSMr2lm3Iq29V0Ltrsx8rrYADO7trCm6qyEQK9TLKfywaYIcm/D9FJ8F4WBHtIeJ3PLY3518L3iZ+Ngd6QTnd0FI6hrG7rpoD/0dz4e//9d3tSsjbh/1BiQwXXTnPyaUjN3C92k4GyITYJTVL5f6evzsTneT6Plj1vWC0E52d1oqVOZDgrWMYZEHdYvpUJTQqclMNhu5SMIYAPqVvibqupcmAh5B+UDr6UvYT/hUAC/d3hyjfHgouRoluJ1mutND88QjDw6UWmXXjHqRSCI6OI5NDZczl/aqz7nPFyTaIe9EibTdZa5LC8fN+Am9MTRxJAv8HXt0zKe5FqHijSvFcVxYlhwlIZg7ShbPh+X2Hnh/JMjx0z/7ujkBRYfmAQW53SBy8Tv/Zv69nCz8eOFOUk="
+
+before_install:
+  - ./tools/travis/scan.sh
+  - ./tools/travis/setup.sh
+
+script:
+  - make test
+  - ./tools/travis/build.sh
+
+deploy:
+  # deploy nightly
+  - provider: script
+    script: ./tools/travis/deploy.sh openwhisk apigateway nightly
+    on:
+      branch: master
+  # deploy tag
+  - provider: script
+    script: ./tools/travis/deploy.sh openwhisk apigateway $TRAVIS_TAG
+    on:
+      tags: true
+      all_branches: true

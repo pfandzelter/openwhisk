@@ -256,6 +256,7 @@ db:
       pass: "{{ db_invoker_pass | default(lookup('ini', 'db_password section=invoker file={{ playbook_dir }}/db_local.ini')) }}"
 
 apigateway:
+  docker_image: "{{ apigateway_docker_image | default('openwhisk/apigateway') }}"
   port:
     api: 9000
     mgmt: 9001

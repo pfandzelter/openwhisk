@@ -1,0 +1,30 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# This is a Dockerfile fragment, used by build_profiling.sh
+
+FROM ubuntu:latest
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && \
+    apt-get install -y gcc make g++ gettext git python zlib1g-dev bzip2 wget m4 git libjemalloc1 libjemalloc-dev
+WORKDIR /tmp
+RUN wget https://sourceware.org/elfutils/ftp/0.168/elfutils-0.168.tar.bz2 && tar -jxf elfutils-0.168.tar.bz2 && cd elfutils-0.168 && ./configure && make -j4 && make install
+
+RUN wget https://sourceware.org/systemtap/ftp/releases/systemtap-3.1.tar.gz && tar -zxf systemtap-3.1.tar.gz && cd systemtap-3.1 && ./configure && make -j4 && make install
+RUN cp /proc/kallsyms /boot/System.map-`uname -r`
+RUN mkdir -p /usr/local/share/perl5/site_perl

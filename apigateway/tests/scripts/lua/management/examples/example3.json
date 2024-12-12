@@ -1,0 +1,102 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0",
+    "title": "Hello World API"
+  },
+  "basePath": "/whisk2",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/bye": {
+      "get": {
+        "operationId": "getBye",
+        "description": "Returns a greeting to the user!",
+        "responses": {
+          "200": {
+            "description": "Returns the greeting.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "Invalid characters in \"user\" were provided."
+          }
+        }
+      },
+      "post": {
+        "operationId": "postBye",
+        "description": null
+      }
+    }
+  },
+  "securityDefinitions": {},
+  "security": [],
+  "x-ibm-rate-limit": [],
+  "x-gateway-configuration": {
+    "assembly": {
+      "execute": [
+        {
+          "operation-switch": {
+            "case": [
+              {
+                "operations": [
+                  "getBye"
+                ],
+                "execute": [
+                  {
+                    "set-variable": {
+                      "actions": [
+                        {
+                          "set": "message.headers.foo",
+                          "value": "bar"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "set-variable": {
+                      "actions": [
+                        {
+                          "set": "message.headers.hello",
+                          "value": "world"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "invoke": {
+                      "target-url": "https://openwhisk.ng.bluemix.net/api/some/action/path.http",
+                      "verb": "keep"
+                    }
+                  }
+                ]
+              },
+              {
+                "operations": [
+                  "postBye"
+                ],
+                "execute": [
+                  {
+                    "invoke": {
+                      "target-url": "https://openwhisk.ng.bluemix.net/api/user@us.ibm.com/demo/createuser",
+                      "verb": "keep"
+                    }
+                  }
+                ]
+              }
+            ],
+            "otherwise": []
+          }
+        }
+      ]
+    }
+  }
+}

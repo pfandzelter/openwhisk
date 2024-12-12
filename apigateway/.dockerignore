@@ -1,0 +1,7 @@
+doc
+.gitignore
+.travis.yml
+CONTRIBUTING.md
+Dockerfile
+Makefile
+README.md
