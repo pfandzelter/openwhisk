@@ -1,7 +1,7 @@
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements; and to You under the Apache License, Version 2.0.
 
-FROM arm32v7/openjdk:8u181-jdk
+FROM openjdk:8u181-jdk-alpine@sha256:9ad4f491330ef5e80857eed38dff936caf6da1473aed236f8dcb54eabb1ac8d5
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en

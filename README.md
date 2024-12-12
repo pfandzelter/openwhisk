@@ -40,7 +40,12 @@ sudo pip install httplib2==0.9.2 --break-system-packages
 cd ~
 git clone https://github.com/pfandzelter/openwhisk
 
-cd openwhisk/ansible
+cd openwhisk
+
+export OPENWHISK_HOME=$(pwd)
+export OPENWHISK_TMP_DIR=$OPENWHISK_HOME/tmp
+
+cd ansible
 
 cat << EOF > db_local.ini
 [db_creds]
@@ -53,7 +58,7 @@ db_port=5984
 EOF
 
 sudo docker pull kpavel/nodejs6action:rpi
-sudo docker pull kpavel/controller:rpi
+sudo docker pull pfandzelter/controller:arm64
 
 ansible-playbook setup.yml
 ansible-playbook couchdb.yml
@@ -62,8 +67,8 @@ ansible-playbook wipe.yml
 ansible-playbook openwhisk.yml -v \
     -e lean=true \
     -e invoker_user_memory=1024m \
-    -e docker_image_prefix=kpavel \
-    -e docker_image_tag=rpi \
+    -e docker_image_prefix=pfandzelter \
+    -e docker_image_tag=arm64 \
     -e controller_protocol=http
 ansible-playbook postdeploy.yml -e skip_catalog_install=true
 ```
@@ -133,13 +138,131 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
     ```sh
     export WSK_IMAGE_PREFIX=pfandzelter
     export WSK_IMAGE_TAG=arm64
+    export WSK_IMAGE_REGISTRY=docker.io
     ```
+
+    Make sure you are logged in to your registry!
 
 1. Build the `dockerskeleton` image:
 
     ```sh
     cd /wsk/runtimes/dockerskeleton
 
+    ./gradlew :core:actionProxy:distDocker :sdk:docker:distDocker
+
+    ./gradlew core:actionProxy:distDocker \
+        -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
+        -PdockerImageTag=$WSK_IMAGE_TAG \
+        -PdockerRegistry=$WSK_IMAGE_REGISTRY
+    ```
+
+    The image should now be available in your registry.
+    We will use it to build the `python` image.
+
+1. Build the `python` image.
+    Note that we have added the `WSK_IMAGE_PREFIX`, `WSK_IMAGE_REGISTRY`, and `WSK_IMAGE_TAG` build arguments to the Dockerfile!
+
+    ```sh
+    cd /wsk/runtimes/python3
+
+    ./gradlew core:pythonAction:distDocker \
+        -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
+        -PdockerImageTag=$WSK_IMAGE_TAG \
+        -PdockerRegistry=$WSK_IMAGE_REGISTRY \
+        -PdockerBuildArgs="WSK_IMAGE_PREFIX=$WSK_IMAGE_PREFIX WSK_IMAGE_TAG=$WSK_IMAGE_TAG WSK_IMAGE_REGISTRY=$WSK_IMAGE_REGISTRY"
+    ```
+
+    You should now have the runtime image in your repository.
+
+1. If you want, you can close your development container now:
+
+    ```sh
+    exit
+    ```
+
+1. To test it, modify the `ansible/files/rpiruntimes.json` file and redeploy your Raspberry Pi Lean OpenWhisk installation.
+    For example:
+
+    ```json
+    {
+        "runtimes": {
+            "python": [
+                {
+                    "kind": "python:6",
+                    "default": true,
+                    "image": {
+                        "prefix": "pfandzelter",
+                        "name": "python3action",
+                        "tag": "arm64"
+                    },
+                    "deprecated": false,
+                    "stemCells": [
+                        {
+                            "count": 2,
+                            "memory": "512 MB"
+                        }
+                    ]
+                }
+            ]
+        },
+        "blackboxes": []
+    }
+    ```
+
+1. Deploy a Python action:
+
+    ```sh
+    cat << EOF > test1.py
+    def main(args):
+        name = args.get("name", "stranger")
+        greeting = "Hello " + name + "!"
+        print(greeting)
+        return {"greeting": greeting}
+    EOF
+
+    wsk action create test1 test1.py
+    wsk action invoke test1 --result
+    ```
+
+## Building the Controller
+
+If you want, you can also build your own controller image for `arm64`.
+Simply use the `wask-runtime-devel` image built above:
+
+1. Start the container from the `openwhisk` directory:
+
+    ```sh
+    docker run --rm -it -v $(pwd):/wsk -v /var/run/docker.sock:/var/run/docker.sock wsk-runtime-devel
+    ```
+
+1. Build the container.
+    We have set the `openjdk:8u181-jdk` `arm64` image instead of the `arm32v7/openjdk:8u181-jdk` image and have changed some dependencies to `arm64`.
+
+    ```sh
+    # change these to fit your needs
+    # may need to run docker login
+    export WSK_IMAGE_PREFIX=pfandzelter
+    export WSK_IMAGE_TAG=arm64
+    export WSK_IMAGE_REGISTRY=docker.io
+
+    ./gradlew core:controller:distDocker \
+        -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
+        -PdockerImageTag=$WSK_IMAGE_TAG \
+        -PdockerRegistry=$WSK_IMAGE_REGISTRY
+    ```
+
+    This will also push the container to the registry.
+    Note that you must log in, the same as with the runtime images.
+
+1. You can now use your custom controller image during deployment, for example:
+
+    ```sh
+    ansible-playbook openwhisk.yml -v \
+        -e lean=true \
+        -e invoker_user_memory=1024m \
+        -e docker_image_prefix=pfandzelter \
+        -e docker_image_tag=arm64 \
+        -e controller_protocol=http
     ```
 
 ---
@@ -165,9 +288,11 @@ OpenWhisk is a cloud-first distributed event-based programming service. It provi
 The easiest way to start using OpenWhisk is to get Docker installed on on Mac, Windows or Linux. The [Docker website](https://docs.docker.com/install/) has details instructions on getting the tools installed. This does not give you a production deployment but gives you enough of the pieces to start writing functions and seeing them run.
 
 ```
-git clone https://github.com/apache/incubator-openwhisk-devtools.git
+
+git clone <https://github.com/apache/incubator-openwhisk-devtools.git>
 cd incubator-openwhisk-devtools/docker-compose
 make quick-start
+
 ```
 
 For more detailed instructions or if you encounter problems see the [OpenWhisk-dev tools](https://github.com/apache/incubator-openwhisk-devtools/blob/master/docker-compose/README.md) project.
@@ -177,7 +302,9 @@ For more detailed instructions or if you encounter problems see the [OpenWhisk-d
 Another path to quickly starting to use OpenWhisk is to install it on a Kubernetes cluster.  On a Mac, you can use the Kubernetes support built into Docker 18.06 (or higher). You can also deploy OpenWhisk on Minikube, on a managed Kubernetes cluster provisioned from a public cloud provider, or on a Kubernetes cluster you manage yourself. To get started,
 
 ```
-git clone https://github.com/apache/incubator-openwhisk-deploy-kube.git
+
+git clone <https://github.com/apache/incubator-openwhisk-deploy-kube.git>
+
 ```
 
 Then follow the instructions in the [OpenWhisk on Kubernetes README.md](https://github.com/apache/incubator-openwhisk-deploy-kube/blob/master/README.md).
@@ -192,23 +319,30 @@ Download and install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and
 Follow these step to run your first OpenWhisk Action:
 
 ```
+
 # Clone openwhisk
-git clone --depth=1 https://github.com/apache/incubator-openwhisk.git openwhisk
+
+git clone --depth=1 <https://github.com/apache/incubator-openwhisk.git> openwhisk
 
 # Change directory to tools/vagrant
+
 cd openwhisk/tools/vagrant
 
 # Run script to create vm and run hello action
+
 ./hello
+
 ```
 
 Wait for hello action output:
 
 ```
+
 wsk action invoke /whisk.system/utils/echo -p message hello --result
 {
     "message": "hello"
 }
+
 ```
 
 These steps were tested on Mac OS X El Capitan, Ubuntu 14.04.3 LTS and Windows using Vagrant.

@@ -26,6 +26,24 @@
                     }
                 ]
             }
+        ],
+        "python": [
+            {
+                "kind": "python:3",
+                "default": true,
+                "image": {
+                    "prefix": "pfandzelter",
+                    "name": "python3action",
+                    "tag": "arm64"
+                },
+                "deprecated": false,
+                "stemCells": [
+                    {
+                        "count": 2,
+                        "memory": "512 MB"
+                    }
+                ]
+            }
         ]
     },
     "blackboxes": []

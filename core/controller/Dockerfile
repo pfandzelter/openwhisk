@@ -1,7 +1,7 @@
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements; and to You under the Apache License, Version 2.0.
 
-FROM arm32v7/openjdk:8u181-jdk
+FROM openjdk:8u181-jdk@sha256:b26125249518d126a47bc3e822c4752e9d22ebdeb47a52950a651f772ed934c5
 
 ENV UID=1001 \
     NOT_ROOT_USER=owuser
@@ -16,12 +16,12 @@ ENV JRE_HOME ${JAVA_HOME}/jre
 #ENV DOCKER_VERSION=1.12.0 \
 #    DOCKER_DOWNLOAD_SHA256=3dd07f65ea4a7b4c8829f311ab0213bca9ac551b5b24706f3e79a97e22097f8b
 
-#RUN apk add --update openssl
+# RUN apk add --update openssl curl
 
 # Uncomment to fetch latest version of docker instead: RUN wget -qO- https://get.docker.com | sh
 # Install docker client
-RUN curl -sSL https://download.docker.com/linux/static/stable/armel/docker-17.12.1-ce.tgz>docker-17.12.1-ce.tgz && \
-tar --strip-components 1 -xvzf docker-17.12.1-ce.tgz -C /usr/bin docker/docker && tar --strip-components 1 -xvzf docker-17.12.1-ce.tgz  -C /usr/bin docker/docker-runc && chmod +x /usr/bin/docker && chmod +x /usr/bin/docker-runc && rm -f docker-17.12.1-ce.tgz
+RUN curl -sSL https://download.docker.com/linux/static/stable/aarch64/docker-17.12.1-ce.tgz>docker-17.12.1-ce.tgz && \
+    tar --strip-components 1 -xvzf docker-17.12.1-ce.tgz -C /usr/bin docker/docker && tar --strip-components 1 -xvzf docker-17.12.1-ce.tgz  -C /usr/bin docker/docker-runc && chmod +x /usr/bin/docker && chmod +x /usr/bin/docker-runc && rm -f docker-17.12.1-ce.tgz
 
 #RUN curl -sSL -o docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz && \
 #echo "${DOCKER_DOWNLOAD_SHA256}  docker-${DOCKER_VERSION}.tgz" | sha256sum -c - && \

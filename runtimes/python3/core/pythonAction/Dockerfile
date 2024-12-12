@@ -16,17 +16,21 @@
 #
 
 # Dockerfile for python actions, overrides and extends ActionRunner from actionProxy
-FROM openwhisk/dockerskeleton:1.14.0
+ARG WSK_IMAGE_PREFIX=openwhisk
+ARG WSK_IMAGE_REGISTRY=docker.io
+ARG WSK_IMAGE_TAG=1.14.0
+
+FROM ${WSK_IMAGE_REGISTRY}/${WSK_IMAGE_PREFIX}/dockerskeleton:${WSK_IMAGE_TAG}
 
 RUN apk add --no-cache \
-        bzip2-dev \
-        gcc \
-        libc-dev \
-        libxslt-dev \
-        libxml2-dev \
-        libffi-dev \
-        linux-headers \
-        openssl-dev
+    bzip2-dev \
+    gcc \
+    libc-dev \
+    libxslt-dev \
+    libxml2-dev \
+    libffi-dev \
+    linux-headers \
+    openssl-dev
 
 # Install common modules for python
 RUN pip install \
