@@ -21,7 +21,7 @@
                 "deprecated": false,
                 "stemCells": [
                     {
-                        "count": 2,
+                        "count": 4,
                         "memory": "256 MB"
                     }
                 ]
@@ -39,7 +39,7 @@
                 "deprecated": false,
                 "stemCells": [
                     {
-                        "count": 2,
+                        "count": 4,
                         "memory": "512 MB"
                     }
                 ]

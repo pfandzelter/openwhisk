@@ -55,10 +55,18 @@ db_password=some_passw0rd
 db_protocol=http
 db_host=172.17.0.1
 db_port=5984
+[controller]
+db_username=whisk_local_controller0
+db_password=some_controller_passw0rd
+[invoker]
+db_username=whisk_local_invoker0
+db_password=some_invoker_passw0rd
 EOF
 
 sudo docker pull kpavel/nodejs6action:rpi
 sudo docker pull pfandzelter/controller:arm64
+sudo docker pull pfandzelter/python3action:arm64
+sudo docker pull treehouses/couchdb
 # sudo docker pull pfandzelter/apigateway:arm64
 
 ansible-playbook setup.yml
@@ -75,6 +83,14 @@ ansible-playbook postdeploy.yml -e skip_catalog_install=true
 # ansible-playbook apigateway.yml \
 #     -e apigateway_docker_image=pfandzelter/apigateway:arm64
 ```
+
+Note that you may get the following error when deploying CouchDB:
+
+```error
+The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+```
+
+That is no reason to worry, it's a result of changes in how Docker handles multi-platform images.
 
 We now have Lean OpenWhisk running and can deploy our functions.
 First, we need to install the `wsk` CLI:
@@ -191,7 +207,7 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
         "runtimes": {
             "python": [
                 {
-                    "kind": "python:6",
+                    "kind": "python:3",
                     "default": true,
                     "image": {
                         "prefix": "pfandzelter",
