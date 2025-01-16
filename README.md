@@ -29,13 +29,19 @@ Here are the steps:
 ```sh
 sudo apt update
 
-sudo apt install python3 python3-pip netcat-openbsd nodejs npm
+sudo apt install python3 python3-pip netcat-openbsd nodejs npm unzip -y
 
 sudo pip install ansible==4.1.0 --break-system-packages
 sudo pip install jinja2==3.0.1 --break-system-packages
 sudo pip install requests==2.31.0 --break-system-packages
 sudo pip install docker==4.0.2 --break-system-packages
 sudo pip install httplib2==0.9.2 --break-system-packages
+
+# install Docker using your preferred method, or this one
+curl -fsSL https://get.docker.com -o install-docker.sh
+sudo sh install-docker.sh
+sudo usermod -aG docker $USER
+newgrp docker
 
 cd ~
 git clone https://github.com/pfandzelter/openwhisk
@@ -63,11 +69,11 @@ db_username=whisk_local_invoker0
 db_password=some_invoker_passw0rd
 EOF
 
-sudo docker pull kpavel/nodejs6action:rpi
-sudo docker pull pfandzelter/controller:arm64
-sudo docker pull pfandzelter/python3action:arm64
-sudo docker pull treehouses/couchdb
-# sudo docker pull pfandzelter/apigateway:arm64
+
+# for x64, simply replace "arm64" with "x64"
+docker pull pfandzelter/controller:arm64
+docker pull pfandzelter/python3action:arm64
+docker pull treehouses/couchdb
 
 ansible-playbook setup.yml
 ansible-playbook couchdb.yml
@@ -83,6 +89,8 @@ ansible-playbook postdeploy.yml -e skip_catalog_install=true
 # ansible-playbook apigateway.yml \
 #     -e apigateway_docker_image=pfandzelter/apigateway:arm64
 ```
+
+Replace `arm64` with `amd64` if you want to run this on an `amd64` computer.
 
 Note that you may get the following error when deploying CouchDB:
 
@@ -105,6 +113,8 @@ APIHOST=http://172.17.0.1:10001
 NAMESPACE=guest
 EOF
 ```
+
+Of course, download the `amd64` variant for an `amd64` computer.
 
 Create a file `hello.js`, add it as an action, and invoke it:
 
@@ -143,6 +153,12 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
     docker build --platform linux/arm64 -f devel.Dockerfile -t wsk-runtime-devel .
     ```
 
+    For amd64, simply replace `linux/arm64` with `linux/amd64` and use the `devel-amd64.Dockerfile`:
+
+    ```sh
+    docker build --platform linux/amd64 -f devel-amd64.Dockerfile -t wsk-runtime-devel .
+    ```
+
 1. Start the development container with access to `/var/run/docker.sock` and your files.
 
     ```sh
@@ -161,22 +177,23 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
     ```
 
     Make sure you are logged in to your registry!
+    Feel free to change the image tag to `amd64` if you are building for amd64.
 
 1. Build the `dockerskeleton` image:
 
     ```sh
     cd /wsk/runtimes/dockerskeleton
 
-    ./gradlew :core:actionProxy:distDocker :sdk:docker:distDocker
-
-    ./gradlew core:actionProxy:distDocker \
+    ./gradlew core:actionProxy:distDocker :sdk:docker:distDocker \
         -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
         -PdockerImageTag=$WSK_IMAGE_TAG \
-        -PdockerRegistry=$WSK_IMAGE_REGISTRY
+        -PdockerRegistry=$WSK_IMAGE_REGISTRY \
+        -PdockerPlatform=linux/arm64
     ```
 
     The image should now be available in your registry.
     We will use it to build the `python` image.
+    Change the platform to `linux/amd64` for amd64.
 
 1. Build the `python` image.
     Note that we have added the `WSK_IMAGE_PREFIX`, `WSK_IMAGE_REGISTRY`, and `WSK_IMAGE_TAG` build arguments to the Dockerfile!
@@ -188,9 +205,11 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
         -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
         -PdockerImageTag=$WSK_IMAGE_TAG \
         -PdockerRegistry=$WSK_IMAGE_REGISTRY \
+        -PdockerPlatform=linux/arm64 \
         -PdockerBuildArgs="WSK_IMAGE_PREFIX=$WSK_IMAGE_PREFIX WSK_IMAGE_TAG=$WSK_IMAGE_TAG WSK_IMAGE_REGISTRY=$WSK_IMAGE_REGISTRY"
     ```
 
+    Change the platform to `linux/amd64` for amd64.
     You should now have the runtime image in your repository.
 
 1. If you want, you can close your development container now:
@@ -228,6 +247,8 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
     }
     ```
 
+    For amd64, simply replace `arm64` with `amd64`.
+
 1. Deploy a Python action:
 
     ```sh
@@ -246,12 +267,16 @@ These are all performed on an M1 MacBook Pro (`arm64`) with Docker, but you coul
 ## Building the Controller
 
 If you want, you can also build your own controller image for `arm64`.
+Again, feel free to adapt for `amd64`.
 Simply use the `wask-runtime-devel` image built above:
 
 1. Start the container from the `openwhisk` directory:
 
     ```sh
-    docker run --rm -it -v $(pwd):/wsk -v /var/run/docker.sock:/var/run/docker.sock wsk-runtime-devel
+    docker run --rm -it \
+        --platform linux/arm64 \
+        -v $(pwd):/wsk -v /var/run/docker.sock:/var/run/docker.sock \
+        wsk-runtime-devel
     ```
 
 1. Build the container.
@@ -267,7 +292,8 @@ Simply use the `wask-runtime-devel` image built above:
     ./gradlew core:controller:distDocker \
         -PdockerImagePrefix=$WSK_IMAGE_PREFIX \
         -PdockerImageTag=$WSK_IMAGE_TAG \
-        -PdockerRegistry=$WSK_IMAGE_REGISTRY
+        -PdockerRegistry=$WSK_IMAGE_REGISTRY \
+        -PdockerPlatform=linux/arm64
     ```
 
     This will also push the container to the registry.

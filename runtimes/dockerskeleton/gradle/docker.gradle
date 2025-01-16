@@ -46,11 +46,17 @@ ext {
     dockerRetries = project.hasProperty('dockerRetries') ? dockerRetries.toInteger() : 3
     dockerBinary = project.hasProperty('dockerBinary') ? [dockerBinary] : ['docker']
     dockerBuildArg = ['build']
+    dockerPlatform = project.hasProperty('dockerPlatform') ? dockerPlatform : 'linux/arm64'
 }
 ext.dockerTaggedImageName = dockerRegistry + dockerImagePrefix + '/' + dockerImageName + ':' + dockerImageTag
 
 if(project.hasProperty('dockerHost')) {
     dockerBinary += ['--host', project.dockerHost]
+}
+
+if (project.hasProperty('dockerPlatform')) {
+    dockerBuildArg += ['--platform', dockerPlatform]
+    dockerBuildArg += ['--build-arg', "DOCKER_PLATFORM=${dockerPlatform}"]
 }
 
 if(project.hasProperty('dockerBuildArgs')) {

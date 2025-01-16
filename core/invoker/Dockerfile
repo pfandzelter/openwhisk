@@ -3,6 +3,8 @@
 
 FROM scala
 
+ARG DOCKER_PLATFORM=linux/arm64
+
 ENV UID=1001 \
     NOT_ROOT_USER=owuser
 ENV DOCKER_VERSION=1.12.0 \
@@ -12,13 +14,17 @@ RUN apk add --update openssl
 
 # Uncomment to fetch latest version of docker instead: RUN wget -qO- https://get.docker.com | sh
 # Install docker client
-RUN curl -sSL -o docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz && \
-echo "${DOCKER_DOWNLOAD_SHA256}  docker-${DOCKER_VERSION}.tgz" | sha256sum -c - && \
-tar --strip-components 1 -xvzf docker-${DOCKER_VERSION}.tgz -C /usr/bin docker/docker && \
-tar --strip-components 1 -xvzf docker-${DOCKER_VERSION}.tgz -C /usr/bin docker/docker-runc && \
-rm -f docker-${DOCKER_VERSION}.tgz && \
-chmod +x /usr/bin/docker && \
-chmod +x /usr/bin/docker-runc
+RUN if [ "${DOCKER_PLATFORM}" = "linux/arm64" ]; then \
+    curl -sSL -o docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/aarch64/docker-${DOCKER_VERSION}.tgz && \
+    else \
+    curl -sSL -o docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz && \
+    fi && \
+    echo "${DOCKER_DOWNLOAD_SHA256}  docker-${DOCKER_VERSION}.tgz" | sha256sum -c - && \
+    tar --strip-components 1 -xvzf docker-${DOCKER_VERSION}.tgz -C /usr/bin docker/docker && \
+    tar --strip-components 1 -xvzf docker-${DOCKER_VERSION}.tgz -C /usr/bin docker/docker-runc && \
+    rm -f docker-${DOCKER_VERSION}.tgz && \
+    chmod +x /usr/bin/docker && \
+    chmod +x /usr/bin/docker-runc
 
 ADD build/distributions/invoker.tar ./
 

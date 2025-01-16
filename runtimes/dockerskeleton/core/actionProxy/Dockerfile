@@ -18,6 +18,8 @@
 # Dockerfile for docker skeleton (useful for running blackbox binaries, scripts, or Python 3 actions) .
 FROM python:3.6-alpine
 
+ARG DOCKER_PLATFORM=linux/arm64
+
 # Upgrade and install basic Python dependencies.
 RUN apk upgrade --update \
     && apk add --no-cache bash perl jq zip git curl wget openssl ca-certificates sed openssh-client \

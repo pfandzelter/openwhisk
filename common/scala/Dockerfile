@@ -1,7 +1,9 @@
 # Licensed to the Apache Software Foundation (ASF) under one or more contributor
 # license agreements; and to You under the Apache License, Version 2.0.
 
-FROM openjdk:8u181-jdk-alpine@sha256:9ad4f491330ef5e80857eed38dff936caf6da1473aed236f8dcb54eabb1ac8d5
+FROM openjdk:8u181-jdk-alpine
+
+ARG DOCKER_PLATFORM=linux/arm64
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -23,6 +25,7 @@ ENV PATH $JAVA_HOME/bin:$PATH
 RUN apk upgrade --update && \
     apk add --update libstdc++ curl ca-certificates bash sed && \
     update-ca-certificates && \
+    if [ "${DOCKER_PLATFORM}" = "linux/arm64" ]; then \
     for pkg in glibc-${GLIBC_VERSION} glibc-bin-${GLIBC_VERSION} glibc-i18n-${GLIBC_VERSION}; do curl -sSL https://github.com/chrisanthropic/docker-alpine-rpi-glibc-builder/releases/download/0.0.1/${pkg}.apk -o /tmp/${pkg}.apk; done && \
     apk add --allow-untrusted /tmp/*.apk && \
     rm -v /tmp/*.apk && \
@@ -33,7 +36,10 @@ RUN apk upgrade --update && \
     # https://github.com/anapsix/docker-alpine-java/issues/18#issue-167437838
     # If you want to change the default values here, also change the values in 042-set-jvm-ttl.sh
     sed -i s/#networkaddress.cache.ttl=-1/networkaddress.cache.ttl=10/ ${JAVA_HOME}/jre/lib/security/java.security && \
-    sed -i s/networkaddress.cache.negative.ttl=10/networkaddress.cache.negative.ttl=0/ ${JAVA_HOME}/jre/lib/security/java.security
+    sed -i s/networkaddress.cache.negative.ttl=10/networkaddress.cache.negative.ttl=0/ ${JAVA_HOME}/jre/lib/security/java.security \
+    ; else \
+    echo "Skipping glibc installation for non-arm64 platform"; \
+    fi
 
 RUN mkdir /logs
 
